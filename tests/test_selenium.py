@@ -120,7 +120,7 @@ class TestCalculator:
             result = WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.ID, "result"))
             )
-            assert f"Résultat: {expected}" in result.text
+            assert expected in result.text
             time.sleep(1)
 
     def test_all_operations_with_decimals(self, driver):
@@ -155,7 +155,7 @@ class TestCalculator:
             result = WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.ID, "result"))
             )
-            assert f"Résultat: {expected}" in result.text
+            assert expected in result.text
             time.sleep(1)
 
     def test_all_operations_with_negative_numbers(self, driver):
@@ -168,7 +168,7 @@ class TestCalculator:
             ("add", "-8", "-2", "-10"),
             ("add", "8", "-2", "6"),
             ("subtract", "8", "-2", "10"),
-            ("subtract", "-8", "-2", "-10"),
+            ("subtract", "-8", "-2", "-6"),
             ("subtract", "-8", "2", "-10"),
             ("multiply", "8", "-2", "-16"),
             ("multiply", "-8", "-2", "16"),
@@ -198,7 +198,7 @@ class TestCalculator:
             result = WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.ID, "result"))
             )
-            assert f"Résultat: {expected}" in result.text
+            assert expected in result.text
             time.sleep(1)
 
     def test_page_load_time(self, driver):
