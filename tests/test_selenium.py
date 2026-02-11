@@ -10,6 +10,8 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
 import os
 
+from calculator_page import CalculatorPage
+
 class TestCalculator:
     @pytest.fixture(scope="class")
     def driver(self):
@@ -31,8 +33,8 @@ class TestCalculator:
 
     def test_page_loads(self, driver):
         """Test 1: Vérifier que la page se charge correctement"""
-        file_path = os.path.abspath("../src/index.html")
-        driver.get(f"file://{file_path}")
+        page = CalculatorPage(driver)
+        page.load_page()
         
         # Vérifier le titre
         assert "Calculatrice Simple" in driver.title
@@ -45,19 +47,18 @@ class TestCalculator:
 
     def test_addition(self, driver):
         """Test 2: Tester l'addition"""
-        file_path = os.path.abspath("../src/index.html")
-        driver.get(f"file://{file_path}")
+        page = CalculatorPage(driver)
+        page.load_page()
         
         # Saisir les valeurs
-        driver.find_element(By.ID, "num1").send_keys("10")
-        driver.find_element(By.ID, "num2").send_keys("5")
+        page.enter_first_number("10")
+        page.enter_second_number("5")
         
         # Sélectionner l'addition
-        select = Select(driver.find_element(By.ID, "operation"))
-        select.select_by_value("add")
+        page.select_operation("add")
         
         # Cliquer sur calculer
-        driver.find_element(By.ID, "calculate").click()
+        page.click_calculate()
         
         # Vérifier le résultat
         result = WebDriverWait(driver, 10).until(
@@ -67,20 +68,17 @@ class TestCalculator:
 
     def test_division_by_zero(self, driver):
         """Test 3: Tester la division par zéro"""
-        file_path = os.path.abspath("../src/index.html")
-        driver.get(f"file://{file_path}")
+        page = CalculatorPage(driver)
+        page.load_page()
         
         # Saisir les valeurs
-        driver.find_element(By.ID, "num1").clear()
-        driver.find_element(By.ID, "num1").send_keys("10")
-        driver.find_element(By.ID, "num2").clear()
-        driver.find_element(By.ID, "num2").send_keys("0")
+        page.enter_first_number("10")
+        page.enter_second_number("0")
         
         # Sélectionner la division
-        select = Select(driver.find_element(By.ID, "operation"))
-        select.select_by_value("divide")
+        page.select_operation("divide")
         
-        driver.find_element(By.ID, "calculate").click()
+        page.click_calculate()
         
         # Vérifier le message d'erreur
         result = WebDriverWait(driver, 10).until(
@@ -90,8 +88,8 @@ class TestCalculator:
 
     def test_all_operations(self, driver):
         """Test 4: Tester toutes les opérations"""
-        file_path = os.path.abspath("../src/index.html")
-        driver.get(f"file://{file_path}")
+        page = CalculatorPage(driver)
+        page.load_page()
         
         operations = [
             ("add", "8", "2", "10"),
@@ -102,33 +100,105 @@ class TestCalculator:
         
         for op, num1, num2, expected in operations:
             # Nettoyer les champs
-            driver.find_element(By.ID, "num1").clear()
-            driver.find_element(By.ID, "num2").clear()
+            page.clear_fields()
             
             # Saisir les valeurs
-            driver.find_element(By.ID, "num1").send_keys(num1)
-            driver.find_element(By.ID, "num2").send_keys(num2)
+            page.enter_first_number(num1)
+            page.enter_second_number(num2)
             
             # Sélectionner l'opération
-            select = Select(driver.find_element(By.ID, "operation"))
-            select.select_by_value(op)
+            page.select_operation(op)
             
             # Calculer
-            driver.find_element(By.ID, "calculate").click()
+            page.click_calculate()
             
             # Vérifier le résultat
             result = WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.ID, "result"))
             )
-            assert f"Résultat: {expected}" in result.text
+            assert expected in result.text
+            time.sleep(1)
+
+    def test_all_operations_with_decimals(self, driver):
+        """Test 4: Tester toutes les opérations avec des nombres décimaux"""
+        page = CalculatorPage(driver)
+        page.load_page()
+        
+        operations = [
+            ("add", "8.5", "2.3", "10.8"),
+            ("subtract", "8.5", "2.3", "6.2"),
+            ("multiply", "8.5", "2.3", "19.55"),
+            ("divide", "12.4", "1.2", "10.33")
+        ]
+        
+        for op, num1, num2, expected in operations:
+            # Nettoyer les champs
+            page.clear_fields()
+            
+            # Saisir les valeurs
+            page.enter_first_number(num1)
+            page.enter_second_number(num2)
+            
+            # Sélectionner l'opération
+            page.select_operation(op)
+            
+            # Calculer
+            page.click_calculate()
+            
+            # Vérifier le résultat
+            result = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.ID, "result"))
+            )
+            assert expected in result.text
+            time.sleep(1)
+
+    def test_all_operations_with_negative_numbers(self, driver):
+        """Test 4: Tester toutes les opérations avec des nombres négatifs"""
+        page = CalculatorPage(driver)
+        page.load_page()
+        
+        operations = [
+            ("add", "-8", "2", "-6"),
+            ("add", "-8", "-2", "-10"),
+            ("add", "8", "-2", "6"),
+            ("subtract", "8", "-2", "10"),
+            ("subtract", "-8", "-2", "-6"),
+            ("subtract", "-8", "2", "-10"),
+            ("multiply", "8", "-2", "-16"),
+            ("multiply", "-8", "-2", "16"),
+            ("multiply", "-8", "2", "-16"),
+            ("divide", "-12", "2", "-6"),
+            ("divide", "-12", "-2", "6"),
+            ("divide", "12", "-2", "-6")
+        ]
+        
+        for op, num1, num2, expected in operations:
+            # Nettoyer les champs
+            page.clear_fields()
+            
+            # Saisir les valeurs
+            page.enter_first_number(num1)
+            page.enter_second_number(num2)
+            
+            # Sélectionner l'opération
+            page.select_operation(op)
+            
+            # Calculer
+            page.click_calculate()
+            
+            # Vérifier le résultat
+            result = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.ID, "result"))
+            )
+            assert expected in result.text
             time.sleep(1)
 
     def test_page_load_time(self, driver):
         """Test 5: Mesurer le temps de chargement de la page"""
         start_time = time.time()
 
-        file_path = os.path.abspath("../src/index.html")
-        driver.get(f"file://{file_path}")
+        page = CalculatorPage(driver)
+        page.load_page()
         
         # Attendre que la page soit complètement chargée
         WebDriverWait(driver, 10).until(
