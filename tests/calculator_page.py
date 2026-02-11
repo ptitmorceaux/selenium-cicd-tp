@@ -11,6 +11,10 @@ class CalculatorPage:
     def load_page(self):
         file_path = os.path.abspath("../src/index.html")
         self.driver.get(f"file://{file_path}")
+    
+    def clear_fields(self):
+        self.driver.find_element(By.ID, "num1").clear()
+        self.driver.find_element(By.ID, "num2").clear()
 
     def enter_first_number(self, value):
         self.driver.find_element(By.ID, "num1").send_keys(str(value))
